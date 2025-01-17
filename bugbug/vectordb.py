@@ -35,17 +35,35 @@ class QueryFilter:
 
     Attributes:
         must_match: The key is the field name and the value that must be matched.
+        must_match_except: The key is the field name and the list of values
+            that must not be matched.
     """
 
     must_match: dict[str, str | int]
+    must_match_except: dict[str, list[str | int]]
 
     def to_qdrant_filter(self) -> qdrant_types.Filter:
-        return {
-            "must": [
+        qdrant_filter: qdrant_types.Filter = {}
+
+        if self.must_match:
+            if "must" not in qdrant_filter:
+                qdrant_filter["must"] = []
+
+            qdrant_filter["must"].extend(
                 {"key": key, "match": {"value": value}}
                 for key, value in self.must_match.items()
-            ]
-        }
+            )
+
+        if self.must_match_except:
+            if "must" not in qdrant_filter:
+                qdrant_filter["must"] = []
+
+            qdrant_filter["must"].extend(
+                {"key": key, "match": {"except": value}}
+                for key, value in self.must_match_except.items()
+            )
+
+        return qdrant_filter or None
 
 
 class VectorDB(ABC):
