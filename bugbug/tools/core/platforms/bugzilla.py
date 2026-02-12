@@ -421,12 +421,12 @@ class Bug:
         bugs: list[dict] = []
         Bugzilla(
             bug_id,
-            include_fields=["_default", "comments", "history"],
+            include_fields=["_default", "comments", "history", "groups"],
             bughandler=lambda bug, data: data.append(bug),
             bugdata=bugs,
         ).get_data().wait()
 
-        if not bugs:
+        if not bugs or bugs[0]["groups"]:
             raise ValueError(f"Bug {bug_id} not found")
 
         bug_data = bugs[0]
